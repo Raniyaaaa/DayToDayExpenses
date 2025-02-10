@@ -11,7 +11,7 @@ function Signup() {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://localhost:3000/auth/signup`,
+        `http://localhost:8000/auth/signup`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
