@@ -19,7 +19,8 @@ function Login() {
       );
       const data = await response.json();
       if (response.ok) {
-        alert("Login successful! Please login.");
+        localStorage.setItem("token", data.token);
+        alert("Login successful!!");
         navigate("/dashboard");
       } else {
         alert(data.error || "Login failed");
