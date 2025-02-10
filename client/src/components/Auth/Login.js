@@ -10,7 +10,7 @@ function Login() {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://localhost:8000/user/signup`,
+        `http://localhost:8000/user/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -20,7 +20,7 @@ function Login() {
       const data = await response.json();
       if (response.ok) {
         alert("Login successful! Please login.");
-        navigate("/home");
+        navigate("/dashboard");
       } else {
         alert(data.error || "Login failed");
       }
@@ -49,6 +49,9 @@ function Login() {
         />
         <button type="submit">Login</button>
       </form>
+      <p className="form-text">
+        <a href="/forgot-password">Forgot Password?</a>
+      </p>
       <p className="form-text">
         New User? <a href="/signup">SignUp Now</a>
       </p>
