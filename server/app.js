@@ -12,7 +12,7 @@ app.use(cors())
 app.use(bodyParser.json());
 
 
-app.use('/auth', authRoutes);
+app.use('/user', authRoutes);
 
 sequelize
   .sync()

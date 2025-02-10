@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Signup() {
-  const [username, setUsername] = useState("");
+function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -15,15 +14,15 @@ function Signup() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, email, password }),
+          body: JSON.stringify({ email, password }),
         }
       );
       const data = await response.json();
       if (response.ok) {
-        alert("Signup successful! Please login.");
-        navigate("/login");
+        alert("Login successful! Please login.");
+        navigate("/home");
       } else {
-        alert(data.error || "Signup failed");
+        alert(data.error || "Login failed");
       }
     } catch (error) {
       alert("An error occurred. Please try again.");
@@ -32,15 +31,8 @@ function Signup() {
 
   return (
     <div className="form-container">
-      <h1 className="form-title">Signup</h1>
+      <h1 className="form-title">Login</h1>
       <form onSubmit={handleSubmit} className="auth-form">
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
         <input
           type="email"
           placeholder="Email"
@@ -55,13 +47,13 @@ function Signup() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Signup</button>
+        <button type="submit">Login</button>
       </form>
       <p className="form-text">
-        Already have an account? <a href="/login">Login</a>
+        New User? <a href="/signup">SignUp Now</a>
       </p>
     </div>
   );
 }
 
-export default Signup;
+export default Login;
