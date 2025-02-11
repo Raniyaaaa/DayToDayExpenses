@@ -1,7 +1,13 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../utils/database');
+const User = require('../models/user');
 
 const Expense = sequelize.define('Expense', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   amount: {
     type: DataTypes.FLOAT,
     allowNull: false,

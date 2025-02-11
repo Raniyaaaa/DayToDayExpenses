@@ -18,7 +18,7 @@ User.hasMany(Expense , {foreignKey : "userId"})
 Expense.belongsTo(User, {foreignKey: "userId"})
 
 app.use('/user', authRoutes);
-app.use('/',expenseRoutes);
+app.use('/expenses',expenseRoutes);
 
 sequelize
   .sync()

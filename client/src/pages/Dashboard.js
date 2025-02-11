@@ -8,7 +8,7 @@ const Dashboard = () => {
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState('');
     const token = localStorage.getItem("token");
-    const navigate = useNavigate();
+    let navigate = useNavigate();
     
     const fetchExpenses = async () => {
         const response = await fetch('http://localhost:8000/expenses',
@@ -26,7 +26,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchExpenses();
-    },[expenses]);
+    },[]);
 
     const handleAddExpense = async (e) => {
         e.preventDefault();
@@ -54,6 +54,7 @@ const Dashboard = () => {
     }
 
     const handleDeleteExpense = async (id) => {
+        const token = localStorage.getItem("token");
         const response = await fetch(
             `http://localhost:8000/expenses/${id}`,
             {
@@ -107,7 +108,7 @@ const Dashboard = () => {
                         <option value='Fuel'>Fuel</option>
                         <option value='Food'>Food</option>
                         <option value='Electricity'>Electricity</option>
-                        <option value='Movies'>Movies</option>
+                        <option value='Movie'>Movie</option>
                     </select>
                     <button type='submit' className='foem-button'>Add Expense</button>
                 </form>
