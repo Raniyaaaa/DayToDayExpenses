@@ -29,6 +29,32 @@ exports.addExpense = async ( req, res) => {
     }
 }
 
+exports.editExpense = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { amount, description, category } = req.body;
+      const userId = req.user.userId;
+
+      const expense = await Expense.findOne({ where: { id, userId } });
+
+      if (!expense) {
+          return res.status(404).json({ error: "Expense not found or unauthorized" });
+      }
+
+      expense.amount = amount;
+      expense.description = description;
+      expense.category = category;
+      
+      await expense.save();
+
+      res.status(200).json({ message: "Expense updated successfully", expense });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+
 exports.getExpenses = async (req, res) => {
     try {
       const userId = req.user.userId; 

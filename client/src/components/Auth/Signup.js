@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
 function Signup() {
   const [username, setUsername] = useState("");
@@ -21,7 +22,7 @@ function Signup() {
       const data = await response.json();
       if (response.ok) {
         alert("Signup successful! Please login.");
-        navigate("/login");
+        navigate("/");
       } else {
         alert(data.error || "Signup failed");
       }
@@ -55,10 +56,10 @@ function Signup() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Signup</button>
+        <button className="button" type="submit">Signup</button>
       </form>
       <p className="form-text">
-        Already have an account? <a href="/login">Login</a>
+        Already have an account? <a href="/">Login</a>
       </p>
     </div>
   );
