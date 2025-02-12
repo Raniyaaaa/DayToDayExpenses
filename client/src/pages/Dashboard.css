@@ -126,6 +126,17 @@ body {
     color: #b06363;
 }
 
+.premium-button {
+    background-color: goldenrod;
+    padding: 10px;
+    border: none;
+    color: white;
+    box-shadow: 100px;
+    border-radius: 15rem;
+}
+.premium-button:hover {
+    background-color: #caaf55;
+}
 /* Floating Plus Button */
 .floating-button {
     position: fixed;

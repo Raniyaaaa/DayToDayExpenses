@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { load } from "@cashfreepayments/cashfree-js";
+import { BiTrash, BiEditAlt } from 'react-icons/bi';
 import './Dashboard.css';
-import { BiTrash, BiEditAlt, BiSearchAlt } from 'react-icons/bi';
 
 const Dashboard = () => {
     const [expenses, setExpenses] = useState([]);
@@ -10,20 +12,16 @@ const Dashboard = () => {
     const [category, setCategory] = useState('Fuel');
     const [showForm, setShowForm] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
+    const [loading, setLoading] = useState(false);
     const token = localStorage.getItem("token");
-    let navigate = useNavigate();
+    const navigate = useNavigate();
 
-    const fetchExpenses =  useCallback(async () => {
+    const fetchExpenses = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:8000/expenses', {
+            const response = await axios.get('http://localhost:8000/expenses', {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            const data = await response.json();
-            if (response.ok) {
-                setExpenses(data.expenses);
-            } else {
-                alert(data.error || "Failed to fetch expenses!!!");
-            }
+            setExpenses(response.data.expenses);
         } catch (error) {
             console.error("Error fetching expenses:", error);
         }
@@ -35,33 +33,18 @@ const Dashboard = () => {
 
     const handleSubmitExpense = async (e) => {
         e.preventDefault();
-        const method = editingExpense ? "PUT" : "POST";
+        const method = editingExpense ? "put" : "post";
         const url = editingExpense 
             ? `http://localhost:8000/expenses/${editingExpense}`
             : "http://localhost:8000/expenses";
-
         try {
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ amount, description, category }),
+            const response = await axios[method](url, { amount, description, category }, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            const data = await response.json();
-            
-            if (response.ok) {
-                alert(editingExpense ? "Expense Updated Successfully!" : "Expense Added Successfully!");
-                if (editingExpense) {
-                    setExpenses(expenses.map(exp => exp.id === editingExpense ? data.expense : exp));
-                } else {
-                    setExpenses([...expenses, data.expense]);
-                }
-                resetForm();
-            } else {
-                alert(data.error || "Failed to save expense");
-            }
+            setExpenses((prev) =>
+                editingExpense ? prev.map(exp => exp.id === editingExpense ? response.data.expense : exp) : [...prev, response.data.expense]
+            );
+            resetForm();
         } catch (error) {
             console.error("Error saving expense:", error);
         }
@@ -70,35 +53,21 @@ const Dashboard = () => {
     const handleDeleteExpense = async (id) => {
         if (!window.confirm("Are you sure you want to delete this expense?")) return;
         try {
-            const response = await fetch(`http://localhost:8000/expenses/${id}`, {
-                method: "DELETE",
+            await axios.delete(`http://localhost:8000/expenses/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (response.ok) {
-                alert("Expense Deleted Successfully!!");
-                setExpenses(expenses.filter((expense) => expense.id !== id));
-            } else {
-                alert("Failed to delete expense!!");
-            }
+            setExpenses(prev => prev.filter(expense => expense.id !== id));
         } catch (error) {
             console.error("Error deleting expense:", error);
         }
     };
 
-    const handleEditExpense = (expense) => {
-        setEditingExpense(expense.id);
-        setAmount(expense.amount);
-        setDescription(expense.description);
-        setCategory(expense.category || 'Fuel');
-        setShowForm(true);
-    };
-
     const resetForm = () => {
-        setEditingExpense(null);
         setAmount('');
         setDescription('');
-        setCategory('');
-        setShowForm(false);
+        setCategory('Fuel'); 
+        setShowForm(false); 
+        setEditingExpense(null);
     };
 
     const handleLogout = () => {
@@ -106,65 +75,83 @@ const Dashboard = () => {
         navigate('/');
     };
 
+    const handlePayment = async () => {
+        setLoading(true);
+        try {
+            const cf = await load({ mode: "sandbox" }); // Use "production" for live
+    
+            const response = await fetch("http://localhost:8000/payment/create", {
+                method: "POST",
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json" 
+                },
+                body: JSON.stringify({ amount: 1999.00, currency: "INR" }), // Premium amount
+            });
+    
+            const data = await response.json();
+            if (data.paymentSessionId) {
+                cf.checkout({
+                    paymentSessionId: data.paymentSessionId,
+                    redirectTarget: "_modal",
+                });
+            } else {
+                console.error("Failed to create order");
+            }
+        } catch (error) {
+            console.error("Payment Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+
     return (
         <>
             <div className='nav'>
-               <h2 className='dashboard-title'>EXPENSE TRACKER</h2>
-               <div className="header-buttons">
-                   <button className="search-button"><BiSearchAlt/></button>
-                   <button className="options-button">⋮</button>
-               </div>
-               <button className='logout-button' onClick={handleLogout}>Logout</button>
-           </div>
+                <h2 className='dashboard-title'>EXPENSE TRACKER</h2>
+                <button className='premium-button' type='button' id='renderBtn' onClick={handlePayment} disabled={loading}>
+                    {loading ? "Processing..." : "Premium"}
+                </button>
+                <button className='logout-button' onClick={handleLogout}>Logout</button>
+            </div>
             <div className='dashboard-container'>
-                <div className="expenses-list">
+                <div className='expenses-list'>
                     {expenses.map((expense) => (
-                        <div key={expense.id} className="expense-row">
-                            <p className="expense-category">{expense.category}</p>
-                            <p className="expense-amount">₹{expense.amount}</p>
-                            <p className="expense-description">{expense.description}</p>
-                            <button className="edit-button" onClick={() => handleEditExpense(expense)}><BiEditAlt/></button>
-                            <button className="delete-button" onClick={() => handleDeleteExpense(expense.id)}><BiTrash /></button>
+                        <div key={expense.id} className='expense-row'>
+                            <p className='expense-category'>{expense.category}</p>
+                            <p className='expense-amount'>₹{expense.amount}</p>
+                            <p className='expense-description'>{expense.description}</p>
+                            <button className='edit-button' onClick={() => {
+                                setEditingExpense(expense.id);
+                                setAmount(expense.amount);
+                                setDescription(expense.description);
+                                setCategory(expense.category);
+                                setShowForm(true);
+                            }}>
+                                <BiEditAlt />
+                            </button>
+                            <button className='delete-button' onClick={() => handleDeleteExpense(expense.id)}><BiTrash /></button>
                         </div>
                     ))}
                 </div>
-                
-                <button className="floating-button" onClick={() => setShowForm(true)}>+</button>
-                
+                <button className='floating-button' onClick={() => setShowForm(true)}>+</button>
                 {showForm && (
-                    <div className="modal">
-                        <div className="modal-content">
+                    <div className='modal'>
+                        <div className='modal-content'>
                             <h3 className='form-title'>{editingExpense ? "Edit Expense" : "Add Expense"}</h3>
                             <form className='expense-form' onSubmit={handleSubmitExpense}>
-                                <input
-                                    type='number'
-                                    placeholder='Amount'
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    required
-                                    className='form-input'
-                                />
-                                <input
-                                    type='text'
-                                    placeholder='Description'
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    required
-                                    className='form-input'
-                                />
-                                <select
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    className='form-select'
-                                >
-                                    <option value="Fuel">Fuel</option>
-                                    <option value="Food">Food</option>
-                                    <option value="Electricity">Electricity</option>
-                                    <option value="Movie">Movie</option>
+                                <input className="form-input" type='number' placeholder='Amount' value={amount} onChange={(e) => setAmount(e.target.value)} required />
+                                <input className="form-input" type='text' placeholder='Description' value={description} onChange={(e) => setDescription(e.target.value)} required />
+                                <select className="form-select" value={category} onChange={(e) => setCategory(e.target.value)}>
+                                    <option value='Fuel'>Fuel</option>
+                                    <option value='Food'>Food</option>
+                                    <option value='Electricity'>Electricity</option>
+                                    <option value='Movie'>Movie</option>
                                 </select>
-                                <button type='submit' className='form-button'>{editingExpense ? "Update Expense" : "Add Expense"}</button>
+                                <button className="form-button" type='submit'>{editingExpense ? "Update Expense" : "Add Expense"}</button>
                             </form>
-                            <button className="close-button" onClick={resetForm}>Close</button>
+                            <button className='close-button' onClick={() => resetForm()}>Close</button>
                         </div>
                     </div>
                 )}
