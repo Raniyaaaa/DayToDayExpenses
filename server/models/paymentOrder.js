@@ -3,8 +3,9 @@ const sequelize = require("../utils/database");
 
 const PaymentOrder = sequelize.define("PaymentOrder", {
     id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
         primaryKey: true,
     },
     orderId: {
@@ -16,9 +17,9 @@ const PaymentOrder = sequelize.define("PaymentOrder", {
         allowNull: true, 
     },
     status: {
-        type: DataTypes.ENUM("PENDING", "SUCCESS", "FAILED"),
-        defaultValue: "PENDING",
-    },
+        type: DataTypes.STRING(20), // Increase length to 20 if needed
+        allowNull: false,
+    },      
     amount: {
         type: DataTypes.FLOAT,
         allowNull: false,

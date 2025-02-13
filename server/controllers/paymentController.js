@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
-const { v4: uuidv4 } = require("uuid");
 const PaymentOrder = require("../models/PaymentOrder");
 const User = require("../models/User");
 require("dotenv").config();
@@ -22,8 +21,8 @@ exports.createPayment = async (req, res) => {
       order_currency: currency || "INR",
       customer_details: {
         customer_id: userId.toString(),
-        customer_email: "test@example.com", // Use actual user email
-        customer_phone: "9999999999", // Use actual user phone
+        customer_email: "test@example.com",
+        customer_phone: "9999999999",
       },
       order_meta: {
         return_url: `http://localhost:3000/dashboard?order_id=${orderId}`,
@@ -58,37 +57,55 @@ exports.createPayment = async (req, res) => {
       return res.status(400).json({ message: "Failed to create payment order" });
     }
   } catch (error) {
-    console.error("❌ Error creating payment order:", error.response?.data || error.message);
+    console.error("Error creating payment order:", error.response?.data || error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+
 exports.verifyPayment = async (req, res) => {
   try {
+    console.log("🔹 Incoming Payment Verification:", req.body);
 
-    console.log("HIIIIIIIIIIIIIIIIIIIIIIIIIi");
-    console.log("🔹 Incoming Verification Request:", req.body);
-
-    const { order_id, payment_id, status } = req.body;
-
+    const { order_id } = req.body;
     const paymentOrder = await PaymentOrder.findOne({ where: { orderId: order_id } });
 
     if (!paymentOrder) {
       return res.status(404).json({ message: "Payment order not found" });
     }
 
-    paymentOrder.paymentId = payment_id;
-    paymentOrder.status = status === "SUCCESS" ? "SUCCESS" : "FAILED";
-    await paymentOrder.save();
+    const cashfreeResponse = await axios.get(`${BASE_URL}/${order_id}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-version": "2022-09-01",
+        "x-client-id": process.env.CASHFREE_APP_ID,
+        "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+      },
+    });
 
-    // ✅ If payment is successful, update user to premium
-    if (status === "SUCCESS") {
-      await User.update({ isPremium: true }, { where: { id: paymentOrder.userId } });
+    console.log("Cashfree Response:", cashfreeResponse.data);
+
+    const latestStatus = cashfreeResponse.data.order_status;
+
+    if (!latestStatus) {
+      return res.status(400).json({ message: "Invalid response from Cashfree" });
     }
 
-    return res.json({ message: "Payment status updated successfully" });
+    console.log("LatestStatus:::::", latestStatus)
+    paymentOrder.status = latestStatus;
+    await paymentOrder.save();
+    if (latestStatus === "PAID") {
+      const updatedUser = await User.findOne({ where: { id: paymentOrder.userId } });
+      if (updatedUser) {
+        updatedUser.isPremium = true;
+        await updatedUser.save();
+        console.log("Updated User to Premium:", updatedUser);
+      }
+    }
+
+    return res.json({ latestStatus });
   } catch (error) {
-    console.error("❌ Error verifying payment:", error.response?.data || error.message);
+    console.error("Error verifying payment:", error.response?.data || error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
