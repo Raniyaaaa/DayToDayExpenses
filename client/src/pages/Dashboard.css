@@ -126,6 +126,9 @@ body {
     color: #b06363;
 }
 
+.premium-heading{
+    color: goldenrod;
+}
 .premium-button {
     background-color: goldenrod;
     padding: 10px;

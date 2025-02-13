@@ -26,6 +26,7 @@ exports.createPayment = async (req, res) => {
       },
       order_meta: {
         return_url: `http://localhost:3000/dashboard?order_id=${orderId}`,
+        payment_methods: `upi,cc,dc`
       },
     };
 

@@ -1,0 +1,77 @@
+.leaderboard-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.leaderboard-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.leaderboard-table th {
+    background-color: #63a7ef;
+    color: white;
+    font-weight: bold;
+}
+
+.leaderboard-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.leaderboard-table tbody tr:hover {
+    background-color: #f1f1f1;
+    transition: 0.3s;
+}
+
+/* Highlight Top 3 Users */
+.leaderboard-table tbody tr:first-child td {
+    background-color: rgb(235, 226, 172);
+    color: black;
+    font-weight: bold;
+}
+
+.leaderboard-table tbody tr:nth-child(2) td {
+    background-color: rgb(210, 208, 208);
+    color: black;
+    font-weight: bold;
+}
+
+.leaderboard-table tbody tr:nth-child(3) td {
+    background-color: #eebc8b;
+    color: white;
+    font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .leaderboard-container {
+        width: 90%;
+        padding: 10px;
+    }
+    .leaderboard-title {
+        font-size: 22px;
+    }
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+}

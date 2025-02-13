@@ -5,6 +5,7 @@ const cors = require("cors")
 const authRoutes = require("./routes/authRoutes")
 const expenseRoutes = require('./routes/expenseRoutes');
 const paymentRoutes = require("./routes/paymentRoutes");
+const premiumRoutes = require('./routes/premiumRoutes');
 
 const User = require("./models/User");
 const Expense = require("./models/Expense");
@@ -21,6 +22,7 @@ Expense.belongsTo(User, {foreignKey: "userId"})
 app.use('/user', authRoutes);
 app.use('/expenses',expenseRoutes);
 app.use('/payment', paymentRoutes);
+app.use('/premium', premiumRoutes);
 
 sequelize
   .sync()

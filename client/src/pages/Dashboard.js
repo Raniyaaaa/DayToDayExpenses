@@ -185,9 +185,12 @@ const Dashboard = () => {
             <div className="nav">
                 <h2 className="dashboard-title">EXPENSE TRACKER</h2>
                 {isPremium ? (
-                    <h3>🎉 You are a Premium User!</h3>
+                    <>
+                    <h3 className="premium-heading">🎉 You are a Premium User!</h3>
+                    <button className="premium-button" onClick={() => navigate("/leaderboard")}>View Leaderboard</button>
+                    </>   
                 ) : (
-                    <button onClick={handlePayment} disabled={loading}>
+                    <button className="premium-button" onClick={handlePayment} disabled={loading}>
                         {loading ? "Processing..." : "Go Premium"}
                     </button>
                 )}
