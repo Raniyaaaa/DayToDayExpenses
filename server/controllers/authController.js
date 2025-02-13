@@ -1,5 +1,5 @@
 const { compare } = require('semver');
-const User = require('../models/user')
+const User = require('../models/User')
 const sequelize = require('../utils/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
@@ -43,5 +43,25 @@ exports.login = async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getUser = async (req, res) => {
+  try {
+      const userId = req.user.userId; // Assuming `req.user` contains authenticated user info
+
+      const user = await User.findByPk(userId, {
+          attributes: ["id", "username", "email", "isPremium"],
+      });
+      console.log("User:", user);
+
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.json({ user });
+  } catch (error) {
+      console.error("Error fetching user details:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -6,7 +6,7 @@ const authRoutes = require("./routes/authRoutes")
 const expenseRoutes = require('./routes/expenseRoutes');
 const paymentRoutes = require("./routes/paymentRoutes");
 
-const User = require("./models/user");
+const User = require("./models/User");
 const Expense = require("./models/Expense");
 
 const app = express();

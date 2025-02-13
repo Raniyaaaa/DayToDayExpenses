@@ -1,5 +1,5 @@
 const Expense = require('../models/Expense');
-const User = require('../models/user');
+const User = require('../models/User');
 const sequelize = require('../utils/database');
 
 exports.addExpense = async ( req, res) => {
