@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+const sequelize = require("../utils/database");
 const PaymentOrder = require("../models/PaymentOrder");
 const User = require("../models/User");
 require("dotenv").config();
@@ -10,15 +11,16 @@ const BASE_URL = process.env.CASHFREE_ENVIRONMENT === "sandbox"
   : "https://api.cashfree.com/pg/orders";
 
 exports.createPayment = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
-    const { amount, currency } = req.body;
+    const { amount, currency = "INR" } = req.body;
     const userId = req.user.userId;
     const orderId = `order_${Date.now()}`;
-    console.log("Hppppppppppppppppppp");
+
     const orderData = {
       order_id: orderId,
       order_amount: amount,
-      order_currency: currency || "INR",
+      order_currency: currency,
       customer_details: {
         customer_id: userId.toString(),
         customer_email: "test@example.com",
@@ -26,7 +28,7 @@ exports.createPayment = async (req, res) => {
       },
       order_meta: {
         return_url: `http://localhost:3000/dashboard?order_id=${orderId}`,
-        payment_methods: `upi,cc,dc`
+        payment_methods: "upi,cc,dc",
       },
     };
 
@@ -39,39 +41,36 @@ exports.createPayment = async (req, res) => {
       },
     });
 
-    console.log("Payment response data:",response.data)
-
-    if (response.data && response.data.payment_session_id) {
-      await PaymentOrder.create({
-        orderId,
-        paymentId: response.data.payment_session_id,
-        status: "PENDING",
-        amount,
-        currency,
-        userId,
-      });
-
-      console.log("ORDERID::::::", response.data.order_id);
-
-      return res.json({ paymentSessionId: response.data.payment_session_id, orderId: response.data.order_id });
-    } else {
-      return res.status(400).json({ message: "Failed to create payment order" });
+    if (!response.data?.payment_session_id) {
+      throw new Error("Failed to create payment order");
     }
+
+    await PaymentOrder.create({
+      orderId,
+      paymentId: response.data.payment_session_id,
+      status: "PENDING",
+      amount,
+      currency,
+      userId,
+    }, { transaction });
+
+    await transaction.commit();
+    res.json({ paymentSessionId: response.data.payment_session_id, orderId });
   } catch (error) {
+    if (transaction) await transaction.rollback();
     console.error("Error creating payment order:", error.response?.data || error.message);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-
 exports.verifyPayment = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
-    console.log("🔹 Incoming Payment Verification:", req.body);
-
     const { order_id } = req.body;
-    const paymentOrder = await PaymentOrder.findOne({ where: { orderId: order_id } });
+    const paymentOrder = await PaymentOrder.findOne({ where: { orderId: order_id }, transaction });
 
     if (!paymentOrder) {
+      await transaction.rollback();
       return res.status(404).json({ message: "Payment order not found" });
     }
 
@@ -84,29 +83,28 @@ exports.verifyPayment = async (req, res) => {
       },
     });
 
-    console.log("Cashfree Response:", cashfreeResponse.data);
-
-    const latestStatus = cashfreeResponse.data.order_status;
-
+    const latestStatus = cashfreeResponse.data?.order_status;
     if (!latestStatus) {
+      await transaction.rollback();
       return res.status(400).json({ message: "Invalid response from Cashfree" });
     }
 
-    console.log("LatestStatus:::::", latestStatus)
     paymentOrder.status = latestStatus;
-    await paymentOrder.save();
+    await paymentOrder.save({ transaction });
+
     if (latestStatus === "PAID") {
-      const updatedUser = await User.findOne({ where: { id: paymentOrder.userId } });
-      if (updatedUser) {
-        updatedUser.isPremium = true;
-        await updatedUser.save();
-        console.log("Updated User to Premium:", updatedUser);
+      const user = await User.findOne({ where: { id: paymentOrder.userId }, transaction });
+      if (user) {
+        user.isPremium = true;
+        await user.save({ transaction });
       }
     }
 
-    return res.json({ latestStatus });
+    await transaction.commit();
+    res.json({ latestStatus });
   } catch (error) {
+    if (transaction) await transaction.rollback();
     console.error("Error verifying payment:", error.response?.data || error.message);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };

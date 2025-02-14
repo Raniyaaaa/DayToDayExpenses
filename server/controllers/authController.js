@@ -5,19 +5,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 
 exports.signup = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { username, email, password } = req.body;
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email }, transaction });
     if (existingUser) {
+      await transaction.rollback();
       return res.status(400).json({ error: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, email, password: hashedPassword });
-
+    const user = await User.create({ username, email, password: hashedPassword }, { transaction });
+    await transaction.commit();
     return res.status(201).json({ message: "User created successfully", user });
   } catch (error) {
+    if (transaction) await transaction.rollback();
     return res.status(500).json({ error: error.message });
   }
 };
@@ -38,7 +41,6 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY );
-
     res.status(200).json({ message: "Login successful", token, user });
   } catch (err) {
     console.error("Login error:", err);
