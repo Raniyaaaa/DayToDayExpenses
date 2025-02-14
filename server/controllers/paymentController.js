@@ -17,6 +17,13 @@ exports.createPayment = async (req, res) => {
     const userId = req.user.userId;
     const orderId = `order_${Date.now()}`;
 
+    // Ensure user exists before creating the payment order
+    const user = await User.findOne({ where: { id: userId }, transaction });
+    if (!user) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const orderData = {
       order_id: orderId,
       order_amount: amount,
@@ -67,8 +74,9 @@ exports.verifyPayment = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
     const { order_id } = req.body;
-    const paymentOrder = await PaymentOrder.findOne({ where: { orderId: order_id }, transaction });
 
+    // Ensure payment order exists
+    const paymentOrder = await PaymentOrder.findOne({ where: { orderId: order_id }, transaction });
     if (!paymentOrder) {
       await transaction.rollback();
       return res.status(404).json({ message: "Payment order not found" });
@@ -89,15 +97,20 @@ exports.verifyPayment = async (req, res) => {
       return res.status(400).json({ message: "Invalid response from Cashfree" });
     }
 
+    // Update payment order status
     paymentOrder.status = latestStatus;
     await paymentOrder.save({ transaction });
 
+    // If payment is successful, update the user's premium status
     if (latestStatus === "PAID") {
       const user = await User.findOne({ where: { id: paymentOrder.userId }, transaction });
-      if (user) {
-        user.isPremium = true;
-        await user.save({ transaction });
+      if (!user) {
+        await transaction.rollback();
+        return res.status(404).json({ message: "User not found for premium update" });
       }
+
+      user.isPremium = true;
+      await user.save({ transaction });
     }
 
     await transaction.commit();
