@@ -5,23 +5,18 @@ const sequelize = require("sequelize");
 exports.getLeaderboard = async (req, res) => {
     try {
         const leaderboard = await User.findAll({
-            attributes: [
-                "id",
-                "username",
-                [sequelize.fn("SUM", sequelize.col("Expenses.amount")), "totalExpenses"], // Alias for totalExpenses
-            ],
+            attributes: ['id', 'username',[sequelize.fn("SUM", sequelize.col('expenses.amount')), 'totalexpense']],
             include: [
                 {
                     model: Expense,
-                    attributes: [],
-                },
+                    attributes: []
+                }
             ],
-            group: ["User.id"],
-            order: [[sequelize.literal("totalExpenses"), "DESC"]], // Sorting by totalExpenses
-            raw: true, // Returns raw JSON instead of Sequelize objects
-        });
-
-        res.json({ leaderboard });
+            group: ['User.id'],
+            order: [['totalexpense', "DESC"]]
+        })
+        console.log(leaderboard);
+        res.status(200).json(leaderboard);
     } catch (error) {
         console.error("Error fetching leaderboard:", error);
         res.status(500).json({ message: "Server error" });

@@ -14,7 +14,7 @@ const LeaderBoard = () => {
                 const response = await axios.get("http://localhost:8000/premium/leaderboard", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                setLeaderboard(response.data.leaderboard);
+                setLeaderboard(response.data);
             } catch (error) {
                 console.error("Error fetching leaderboard:", error);
             }
@@ -39,7 +39,7 @@ const LeaderBoard = () => {
                             <tr key={user.id} className={`rank-${index + 1}`}>
                                 <td>{index + 1}</td>
                                 <td>{user.username}</td>
-                                <td>₹{user.totalExpenses || 0}</td>
+                                <td>₹{user.totalexpense || 0}</td>
                             </tr>
                         ))}
                     </tbody>
