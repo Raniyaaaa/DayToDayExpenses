@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Leaderboard.css";
+import { BiTrophy } from "react-icons/bi";
 
 const LeaderBoard = () => {
     const [leaderboard, setLeaderboard] = useState([]);
@@ -14,6 +15,7 @@ const LeaderBoard = () => {
                 const response = await axios.get("http://localhost:8000/premium/leaderboard", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+                console.log(response);
                 setLeaderboard(response.data);
             } catch (error) {
                 console.error("Error fetching leaderboard:", error);
@@ -25,13 +27,13 @@ const LeaderBoard = () => {
     return (
         <div className="modal">
             <div className="modal-content">
-                <h3 className="form-title">🏆 Expense Leaderboard</h3>
+                <h3 className="form-title"><BiTrophy/> Expense Leaderboard</h3>
                 <table className="leaderboard-table">
                     <thead>
                         <tr>
                             <th>Rank</th>
                             <th>Name</th>
-                            <th>Total Expenses</th>
+                            <th>Total Expense</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -39,7 +41,7 @@ const LeaderBoard = () => {
                             <tr key={user.id} className={`rank-${index + 1}`}>
                                 <td>{index + 1}</td>
                                 <td>{user.username}</td>
-                                <td>₹{user.totalexpense || 0}</td>
+                                <td>₹{user.totalExpense || 0}</td>
                             </tr>
                         ))}
                     </tbody>

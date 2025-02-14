@@ -25,6 +25,11 @@ const User = sequelize.define("User", {
     type: DataTypes.BOOLEAN,
     defaultValue: false, // Default is NOT premium
   },
+  totalExpense: {
+    type:DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0,
+  }
 });
 
 module.exports = User;
