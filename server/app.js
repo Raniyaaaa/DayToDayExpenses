@@ -9,6 +9,7 @@ const premiumRoutes = require('./routes/premiumRoutes');
 
 const User = require("./models/User");
 const Expense = require("./models/Expense");
+const ForgotPasswordRequests = require('./models/ForgotPasswordRequests');
 
 const app = express();
 const PORT = 8000;
@@ -18,6 +19,7 @@ app.use(bodyParser.json());
 
 User.hasMany(Expense , {foreignKey : "userId"})
 Expense.belongsTo(User, {foreignKey: "userId"})
+ForgotPasswordRequests.belongsTo(User, { foreignKey: 'userId' })
 
 app.use('/user', authRoutes);
 app.use('/expenses',expenseRoutes);

@@ -1,8 +1,10 @@
 const User = require('../models/User');
+const ForgotPasswordRequests = require("../models/ForgotPasswordRequests");
 const sequelize = require('../utils/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Sib = require('sib-api-v3-sdk');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 exports.signup = async (req, res) => {
@@ -83,6 +85,22 @@ exports.getUser = async (req, res) => {
 exports.forgetPassword = async(req, res) => {
   try{
     const { email } = req.body;
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+     const requestId = uuidv4();
+
+     await ForgotPasswordRequests.create({
+       id: requestId,
+       userId: user.id,
+       isActive: true,
+     });
+
+    const resetUrl = `http://localhost:3000/reset-password?requestId=${requestId}&email=${email}`;
+
     console.log("API_KEY:", process.env.API_KEY);
     
     const Client = Sib.ApiClient.instance;
@@ -107,7 +125,7 @@ exports.forgetPassword = async(req, res) => {
       subject: "Password Reset Request",
       textContent: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
         Please click on the following link, or paste it into your browser to complete the process:\n\n
-        \n\n
+        ${resetUrl}\n\n
         If you did not request this, please ignore this email and your password will remain unchanged.\n`,
     })
     res.status(200).json({ message: "Reset link sent to your email." });
@@ -116,3 +134,31 @@ exports.forgetPassword = async(req, res) => {
         res.status(500).json({ error: "Failed to send reset link." });
   }
 }
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, password ,requestId} = req.body;
+
+    const request = await ForgotPasswordRequests.findOne({
+      where: { id: requestId, isActive: true },
+    });
+
+    if (!request) {
+      return res.status(404).json({ error: 'Invalid or expired reset link' });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await user.update({ password: hashedPassword });
+
+    await request.update({ isActive: false });
+    
+    res.status(200).json({ message: 'Password reset successful.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
