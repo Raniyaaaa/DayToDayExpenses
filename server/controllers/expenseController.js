@@ -65,8 +65,31 @@ exports.editExpense = async (req, res) => {
 exports.getExpenses = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const expenses = await Expense.findAll({ where: { userId } });
-        res.status(200).json({ expenses });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        
+
+        const skipped = (page - 1) * limit; 
+
+        const expenses = await Expense.findAll({ 
+            where: { userId },
+            limit,
+            offset: skipped,
+            order: [["createdAt", "DESC"]]
+        });
+        const count = await Expense.count({ where: { userId } });
+        const totalPages = Math.ceil(count / limit); 
+        
+        res.status(200).json({
+            expenses,
+            pagination: {
+              totalExpenses: count,
+              totalPages,
+              currentPage: page,
+              limit,
+            },
+          });
+
     } catch (error) {
         console.error("Error fetching expenses:", error);
         res.status(500).json({ error: error.message });

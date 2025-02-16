@@ -13,6 +13,9 @@ const Dashboard = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [totalPages, setTotalPages] = useState(1);
     const [isPremium, setIsPremium] = useState(() => localStorage.getItem("isPremium") === "true");
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
@@ -20,18 +23,19 @@ const Dashboard = () => {
     // Fetch expenses
     const fetchExpenses = useCallback(async () => {
         try {
-            const response = await axios.get("http://localhost:8000/expenses", {
+            const response = await axios.get(`http://localhost:8000/expenses?page=${currentPage}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setExpenses(response.data.expenses);
+            setTotalPages(response.data.pagination.totalPages);
         } catch (error) {
             console.error("Error fetching expenses:", error);
         }
-    }, [token]);
+    }, [token, currentPage, itemsPerPage]);
 
     useEffect(() => {
         fetchExpenses();
-    }, [fetchExpenses]);
+    }, [fetchExpenses, itemsPerPage]);
 
     // Check user premium status
     useEffect(() => {
@@ -53,7 +57,7 @@ const Dashboard = () => {
             }
         };
         checkUserPremiumStatus();
-    }, [token]);
+    }, [token, isPremium]);
     
 
     // Handle form submission (Add/Edit Expense)
@@ -69,11 +73,13 @@ const Dashboard = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            setExpenses((prev) =>
-                editingExpense
-                    ? prev.map((exp) => (exp.id === editingExpense ? response.data.expense : exp))
-                    : [...prev, response.data.expense]
-            );
+            if (editingExpense) {
+                setExpenses((prev) =>
+                    prev.map((exp) => (exp.id === editingExpense ? { ...exp, amount, description, category } : exp))
+                );
+            } else {
+                fetchExpenses();
+            }
             resetForm();
         } catch (error) {
             console.error("Error saving expense:", error);
@@ -108,6 +114,15 @@ const Dashboard = () => {
         localStorage.removeItem("isPremium");
         navigate("/");
     };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+      };
+    
+      const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(parseInt(e.target.value, 10));
+        setCurrentPage(1); 
+      };
 
     const handleReport = async () => {
         navigate("/report")
@@ -231,6 +246,39 @@ const Dashboard = () => {
                             </button>
                         </div>
                     ))}
+                    <div className="pagination-container">
+        <div className="items-per-page">
+          <label htmlFor="itemsPerPage">Items per page:</label>
+          <select
+            id="itemsPerPage"
+            value={itemsPerPage}
+            onChange={handleItemsPerPageChange}
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+          </select>
+        </div>
+        
+        <div className="pagination-buttons">
+          {(() => {
+            const buttons = [];
+            for (let i = 1; i <= totalPages; i++) {
+              buttons.push(
+                <button
+                  key={i}
+                  className={`page-button ${currentPage === i ? "active" : ""}`}
+                  onClick={() => handlePageChange(i)}
+                >
+                  {i}
+                </button>
+              );
+            }
+            return buttons;
+          })()}
+        </div>
+      </div>
                 </div>
                 <button className="floating-button" onClick={() => setShowForm(true)}>+</button>
                 {showForm && (
