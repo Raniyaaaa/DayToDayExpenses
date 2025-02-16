@@ -1,4 +1,13 @@
-/* Login Page Styling */
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f9fdfb;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Signup Page Styling */
 .form-container {
     width: 100%;
     max-width: 350px;
@@ -13,7 +22,7 @@
 .form-title {
     font-size: 24px;
     font-weight: bold;
-    color: #2e717d;
+    color: #2d7a42;
     margin-bottom: 20px;
 }
 
@@ -21,41 +30,43 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-    gap: 25px;
+    gap: 20px;
 }
 
 .auth-form input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #a0d3b5;
     border-radius: 5px;
     font-size: 16px;
     transition: all 0.3s ease;
 }
 
 .auth-form input:focus {
-    border-color: #1c9c89;
+    border-color: #1a5c37;
     outline: none;
-    box-shadow: 0px 0px 5px rgba(17, 150, 121, 0.3);
+    box-shadow: 0px 0px 5px rgba(26, 92, 55, 0.3);
 }
 
+/* Buttons */
 .button {
     width: 100%;
     padding: 12px;
     font-size: 16px;
     font-weight: bold;
     color: white;
-    background-color: #2e717d;
+    background-color: #34a853;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background 0.3s ease;
 }
 
 .button:hover {
-    background-color: #259c84;
+    background-color: #2a8a41;
 }
 
+/* Text Styling */
 .form-text {
     margin-top: 10px;
     font-size: 14px;
@@ -63,13 +74,28 @@
 }
 
 .form-text a {
-    color: #158f7f;
+    color: #1a5c37;
     text-decoration: none;
     font-weight: bold;
 }
 
 .form-text a:hover {
     text-decoration: underline;
+}
+
+/* Checkbox Styling */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.checkbox-container input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 
 /* Responsive Design */
@@ -84,7 +110,7 @@
     }
 
     .auth-form input,
-    button {
+    .button {
         font-size: 14px;
     }
 }

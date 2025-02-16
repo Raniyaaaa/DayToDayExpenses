@@ -1,84 +1,120 @@
-/* General Styling */
-body {
-    font-family: "Arial", sans-serif;
-    background-color: #f8f9fa;
-    margin: 0;
-    padding: 20px;
-}
-
-/* Report Wrapper */
 .report-wrapper {
     text-align: center;
     margin: 20px auto;
+    padding: 30px;
+    background-color: #f9fdfb; /* Matches general background */
+    border-radius: 10px;
 }
 
-/* Report Container */
-.report-container {
-    width: 80%;
+/* Report Box */
+.report-box {
+    width: 90%;
+    max-width: 1050px;
     margin: 0 auto;
     background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+    border-radius: 12px;
+    border: 1px solid #e0e0e0; /* Light border */
 }
 
 /* Report Title */
 .report-title {
     font-size: 24px;
+    font-weight: 600;
+    color: #2d7a42;
     margin-bottom: 15px;
-    color: #333;
+    text-align: center;
 }
 
-/* Table Styling */
+/* Report Table */
 .report-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
-.report-table th, .report-table td {
+.report-table th, 
+.report-table td {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 12px;
     text-align: left;
+    font-size: 16px;
 }
 
+/* Table Headers */
 .report-table th {
-    background-color: #007bff;
+    background-color: #34a853;
     color: white;
+    font-size: 18px;
+    text-transform: uppercase;
 }
 
 /* Alternate Row Coloring */
 .report-table tbody tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #f1f8f4;
 }
 
-/* Empty Data Styling */
+.report-table tbody tr:hover {
+    background-color: #e1f0e5;
+    transition: background 0.3s ease-in-out;
+}
+
+/* No Data */
 .no-data {
     text-align: center;
     font-style: italic;
     color: #999;
+    font-size: 16px;
+    padding: 12px;
 }
 
 /* Total Expense */
 .report-total {
     font-size: 20px;
-    margin-top: 15px;
     font-weight: bold;
-    color: #28a745;
+    color: #1e814e;
+    text-align: right;
+    margin-top: 15px;
 }
 
 /* Print Button */
 .print-button {
-    background-color: #007bff;
+    background-color: #34a853;
     color: white;
     border: none;
-    padding: 10px 15px;
+    padding: 12px 18px;
     font-size: 16px;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    margin-top: 20px;
+    font-weight: 500;
+    transition: background 0.3s ease-in-out;
+    margin-top: 15px;
 }
 
 .print-button:hover {
-    background-color: #0056b3;
+    background-color: #2a8a41;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .report-box {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .report-title {
+        font-size: 22px;
+    }
+
+    .report-table th, 
+    .report-table td {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .print-button {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
 }

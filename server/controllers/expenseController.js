@@ -67,7 +67,6 @@ exports.getExpenses = async (req, res) => {
         const userId = req.user.userId;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
-        
 
         const skipped = (page - 1) * limit; 
 

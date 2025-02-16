@@ -14,7 +14,9 @@ const Dashboard = () => {
     const [editingExpense, setEditingExpense] = useState(null);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [itemsPerPage, setItemsPerPage] = useState(() => {
+        return parseInt(localStorage.getItem("NoOfItems"), 10) || 5;
+    });
     const [totalPages, setTotalPages] = useState(1);
     const [isPremium, setIsPremium] = useState(() => localStorage.getItem("isPremium") === "true");
     const token = localStorage.getItem("token");
@@ -22,20 +24,25 @@ const Dashboard = () => {
 
     // Fetch expenses
     const fetchExpenses = useCallback(async () => {
+        setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:8000/expenses?page=${currentPage}&limit=${itemsPerPage}`, {
+            const { data } = await axios.get(`http://localhost:8000/expenses`, {
+                params: { page: currentPage, limit: itemsPerPage },
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setExpenses(response.data.expenses);
-            setTotalPages(response.data.pagination.totalPages);
+            setExpenses(data.expenses);
+            setTotalPages(data.pagination.totalPages);
         } catch (error) {
             console.error("Error fetching expenses:", error);
+        } finally {
+            setLoading(false);
         }
     }, [token, currentPage, itemsPerPage]);
+    
 
     useEffect(() => {
         fetchExpenses();
-    }, [fetchExpenses, itemsPerPage]);
+    }, [fetchExpenses, itemsPerPage, currentPage, expenses.length]);     
 
     // Check user premium status
     useEffect(() => {
@@ -63,29 +70,23 @@ const Dashboard = () => {
     // Handle form submission (Add/Edit Expense)
     const handleSubmitExpense = async (e) => {
         e.preventDefault();
-        const method = editingExpense ? "put" : "post";
-        const url = editingExpense
-            ? `http://localhost:8000/expenses/${editingExpense}`
+        const isEditing = Boolean(editingExpense);
+        const url = isEditing 
+            ? `http://localhost:8000/expenses/${editingExpense}` 
             : "http://localhost:8000/expenses";
-
+    
         try {
-            const response = await axios[method](url, { amount, description, category }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (editingExpense) {
-                setExpenses((prev) =>
-                    prev.map((exp) => (exp.id === editingExpense ? { ...exp, amount, description, category } : exp))
-                );
-            } else {
-                fetchExpenses();
-            }
+                await axios[isEditing ? "put" : "post"](url, 
+                { amount, description, category },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             resetForm();
+            fetchExpenses();
         } catch (error) {
             console.error("Error saving expense:", error);
         }
     };
-
+    
     // Handle delete expense
     const handleDeleteExpense = async (id) => {
         if (!window.confirm("Are you sure you want to delete this expense?")) return;
@@ -94,6 +95,11 @@ const Dashboard = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setExpenses((prev) => prev.filter((expense) => expense.id !== id));
+            if (expenses.length === 1 && currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+            } else {
+                fetchExpenses(); // Refresh expenses after deletion
+            }
         } catch (error) {
             console.error("Error deleting expense:", error);
         }
@@ -112,6 +118,7 @@ const Dashboard = () => {
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("isPremium");
+        localStorage.removeItem("NoOfItems")
         navigate("/");
     };
 
@@ -120,7 +127,9 @@ const Dashboard = () => {
       };
     
       const handleItemsPerPageChange = (e) => {
-        setItemsPerPage(parseInt(e.target.value, 10));
+        const selectedItemsPerPage = parseInt(e.target.value, 10);
+        setItemsPerPage(selectedItemsPerPage);
+        localStorage.setItem("NoOfItems", selectedItemsPerPage); // Save preference
         setCurrentPage(1); 
       };
 
@@ -131,10 +140,9 @@ const Dashboard = () => {
     // Handle premium payment
     const handlePayment = async () => {
         setLoading(true);
-        let interval;
         try {
             const cf = await load({ mode: "sandbox" });
-
+    
             const response = await fetch("http://localhost:8000/payment/create", {
                 method: "POST",
                 headers: {
@@ -143,24 +151,18 @@ const Dashboard = () => {
                 },
                 body: JSON.stringify({ amount: 1999.0, currency: "INR" }),
             });
-
+    
             const data = await response.json();
             console.log("Create response data:", data);
+    
             if (data.paymentSessionId) {
                 cf.checkout({
                     paymentSessionId: data.paymentSessionId,
                     redirectTarget: "_modal",
                 });
-
-                let attempts = 0;
-                interval = setInterval(async () => {
-                    if (attempts >= 10) {
-                        clearInterval(interval);
-                        return;
-                    }
-                    attempts++;
-                    await fetchLatestPaymentStatus(data.orderId, interval);
-                }, 5000);
+    
+                // Poll the payment status
+                setTimeout(() => pollPaymentStatus(data.orderId), 5000);
             } else {
                 console.error("Failed to create order");
             }
@@ -170,10 +172,12 @@ const Dashboard = () => {
             setLoading(false);
         }
     };
-
-
-    // Verify payment status
-    const fetchLatestPaymentStatus = async (orderId, interval) => {
+    
+    // Polling function with Exponential Backoff
+    const pollPaymentStatus = async (orderId, attempt = 1) => {
+        const maxAttempts = 10; // Increase the number of retry attempts
+        const delay = Math.min(3000 * attempt, 15000); // Increase frequency but cap at 15 sec
+    
         try {
             const response = await fetch("http://localhost:8000/payment/verify", {
                 method: "POST",
@@ -183,22 +187,35 @@ const Dashboard = () => {
                 },
                 body: JSON.stringify({ order_id: orderId }),
             });
-
+    
             const data = await response.json();
             console.log("Verify Data:", data);
-
+    
             if (data.latestStatus === "PAID") {
-                clearInterval(interval);
                 setIsPremium(true);
                 localStorage.setItem("isPremium", "true");
-            } else if (data.latestStatus === "FAILED") {
-                clearInterval(interval);
+                alert("Payment Successful! You are now a premium user.");
+                return;
+            }
+    
+            if (data.latestStatus === "FAILED") {
                 alert("Payment Failed. Please try again.");
+                return;
+            }
+    
+            if (attempt < maxAttempts) {
+                setTimeout(() => pollPaymentStatus(orderId, attempt + 1), delay);
+            } else {
+                alert("Payment status unknown. Please check your payment history.");
             }
         } catch (error) {
             console.error("Error fetching payment status:", error);
+            if (attempt < maxAttempts) {
+                setTimeout(() => pollPaymentStatus(orderId, attempt + 1), delay);
+            }
         }
     };
+    
 
     return (
         <>
@@ -207,10 +224,10 @@ const Dashboard = () => {
                 {isPremium ? (
                     <>
                     <h3 className="premium-heading">🎉 You are a Premium User!</h3>
-                    <div>
+                    <div className="premium-features">
                     <button className="premium-button" onClick={() => navigate("/leaderboard")}>View Leaderboard</button>
                     <br />
-                    <button className="leaderboard-button" onClick={handleReport}>
+                    <button className="premium-button" onClick={handleReport}>
                         Get Report
                     </button>
                     </div>
@@ -222,7 +239,8 @@ const Dashboard = () => {
                 )}
                 <button className="logout-button" onClick={handleLogout}>Logout</button>
             </div>
-            <div className="dashboard-container">
+            {expenses.length===0?<h2 className="expense-heading">No Expenses Found !!</h2> : (
+            <div className="expense-container">
                 <div className="expenses-list">
                     {expenses.map((expense) => (
                         <div key={expense.id} className="expense-row">
@@ -246,41 +264,41 @@ const Dashboard = () => {
                             </button>
                         </div>
                     ))}
-                    <div className="pagination-container">
-        <div className="items-per-page">
-          <label htmlFor="itemsPerPage">Items per page:</label>
-          <select
-            id="itemsPerPage"
-            value={itemsPerPage}
-            onChange={handleItemsPerPageChange}
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-          </select>
-        </div>
-        
-        <div className="pagination-buttons">
-          {(() => {
-            const buttons = [];
-            for (let i = 1; i <= totalPages; i++) {
-              buttons.push(
-                <button
-                  key={i}
-                  className={`page-button ${currentPage === i ? "active" : ""}`}
-                  onClick={() => handlePageChange(i)}
-                >
-                  {i}
-                </button>
-              );
-            }
-            return buttons;
-          })()}
-        </div>
-      </div>
                 </div>
-                <button className="floating-button" onClick={() => setShowForm(true)}>+</button>
+                <div className="pagination-container">
+                    <div className="items-per-page">
+                        <label htmlFor="itemsPerPage">Items per page:</label>
+                        <select
+                            id="itemsPerPage"
+                            value={itemsPerPage}
+                            onChange={handleItemsPerPageChange}
+                        >
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                    <div className="pagination-buttons">
+                        {(() => {
+                            const buttons = [];
+                            for (let i = 1; i <= totalPages; i++) {
+                            buttons.push(
+                            <button
+                                key={i}
+                                className={`page-button ${currentPage === i ? "active" : ""}`}
+                                onClick={() => handlePageChange(i)}
+                            >
+                            {i}
+                            </button>)
+                            }
+                            return buttons;
+                        })()}
+                    </div>
+                </div>
+            </div>
+            )}
+            <button className="floating-button" onClick={() => setShowForm(true)}>+</button>
                 {showForm && (
                     <div className="modal">
                         <div className="modal-content">
@@ -300,7 +318,6 @@ const Dashboard = () => {
                         </div>
                     </div>
                 )}
-            </div>
         </>
     );
 };

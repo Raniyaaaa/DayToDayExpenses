@@ -17,7 +17,6 @@ exports.createPayment = async (req, res) => {
     const userId = req.user.userId;
     const orderId = `order_${Date.now()}`;
 
-    // Ensure user exists before creating the payment order
     const user = await User.findOne({ where: { id: userId }, transaction });
     if (!user) {
       await transaction.rollback();
