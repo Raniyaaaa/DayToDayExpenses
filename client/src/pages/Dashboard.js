@@ -109,6 +109,10 @@ const Dashboard = () => {
         navigate("/");
     };
 
+    const handleReport = async () => {
+        navigate("/report")
+     };
+
     // Handle premium payment
     const handlePayment = async () => {
         setLoading(true);
@@ -152,6 +156,7 @@ const Dashboard = () => {
         }
     };
 
+
     // Verify payment status
     const fetchLatestPaymentStatus = async (orderId, interval) => {
         try {
@@ -187,7 +192,13 @@ const Dashboard = () => {
                 {isPremium ? (
                     <>
                     <h3 className="premium-heading">🎉 You are a Premium User!</h3>
+                    <div>
                     <button className="premium-button" onClick={() => navigate("/leaderboard")}>View Leaderboard</button>
+                    <br />
+                    <button className="leaderboard-button" onClick={handleReport}>
+                        Get Report
+                    </button>
+                    </div>
                     </>   
                 ) : (
                     <button className="premium-button" onClick={handlePayment} disabled={loading}>

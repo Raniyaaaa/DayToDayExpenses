@@ -8,6 +8,7 @@ import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound"; 
 import ForgotPassword from "./components/Auth/ForgetPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
+import Report from "./pages/Report";
 
 // Helper functions to check login and premium status
 const isAuthenticated = () => {
@@ -40,7 +41,7 @@ function App() {
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
         <Route path="/leaderboard" element={<PremiumRoute element={<Leaderboard />} />} />
-
+        <Route path='/report' element={<Report/>}/>
         {/* 404 Not Found Route (MUST be the last route) */}
         <Route path="*" element={<NotFound />} />
       </Routes>

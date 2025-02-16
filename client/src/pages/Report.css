@@ -1,0 +1,84 @@
+/* General Styling */
+body {
+    font-family: "Arial", sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Report Wrapper */
+.report-wrapper {
+    text-align: center;
+    margin: 20px auto;
+}
+
+/* Report Container */
+.report-container {
+    width: 80%;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Report Title */
+.report-title {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+/* Table Styling */
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.report-table th, .report-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.report-table th {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Alternate Row Coloring */
+.report-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Empty Data Styling */
+.no-data {
+    text-align: center;
+    font-style: italic;
+    color: #999;
+}
+
+/* Total Expense */
+.report-total {
+    font-size: 20px;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+/* Print Button */
+.print-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.print-button:hover {
+    background-color: #0056b3;
+}
