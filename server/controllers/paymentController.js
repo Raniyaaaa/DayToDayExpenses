@@ -1,5 +1,4 @@
 const express = require("express");
-const router = express.Router();
 const axios = require("axios");
 const sequelize = require("../utils/database");
 const PaymentOrder = require("../models/PaymentOrder");
@@ -33,7 +32,7 @@ exports.createPayment = async (req, res) => {
         customer_phone: "9999999999",
       },
       order_meta: {
-        return_url: `http://localhost:3000/dashboard?order_id=${orderId}`,
+        return_url: `${process.env.URL}/dashboard?order_id=${orderId}`,
         payment_methods: "upi,cc,dc",
       },
     };
@@ -64,7 +63,6 @@ exports.createPayment = async (req, res) => {
     res.json({ paymentSessionId: response.data.payment_session_id, orderId });
   } catch (error) {
     if (transaction) await transaction.rollback();
-    console.error("Error creating payment order:", error.response?.data || error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -116,7 +114,6 @@ exports.verifyPayment = async (req, res) => {
     res.json({ latestStatus });
   } catch (error) {
     if (transaction) await transaction.rollback();
-    console.error("Error verifying payment:", error.response?.data || error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

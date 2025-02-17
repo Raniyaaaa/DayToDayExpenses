@@ -26,7 +26,7 @@ const Dashboard = () => {
     const fetchExpenses = useCallback(async () => {
         setLoading(true);
         try {
-            const { data } = await axios.get(`http://localhost:8000/expenses`, {
+            const { data } = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/expenses`, {
                 params: { page: currentPage, limit: itemsPerPage },
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -48,13 +48,9 @@ const Dashboard = () => {
     useEffect(() => {
         const checkUserPremiumStatus = async () => {
             try {
-                const response = await axios.get("http://localhost:8000/user/details", {
+                const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/user/details`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                console.log("User Details API Response:", response.data);
-                
-                // Only update if isPremium is true
-                console.log("Returned Premium state:", response.data.user.isPremium)
                 if (response.data.user.isPremium) {
                     setIsPremium(true);
                     localStorage.setItem("isPremium", "true");
@@ -72,8 +68,8 @@ const Dashboard = () => {
         e.preventDefault();
         const isEditing = Boolean(editingExpense);
         const url = isEditing 
-            ? `http://localhost:8000/expenses/${editingExpense}` 
-            : "http://localhost:8000/expenses";
+            ? `${process.env.REACT_APP_API_BASE_URL}/expenses/${editingExpense}` 
+            : `${process.env.REACT_APP_API_BASE_URL}/expenses`;
     
         try {
                 await axios[isEditing ? "put" : "post"](url, 
@@ -91,7 +87,7 @@ const Dashboard = () => {
     const handleDeleteExpense = async (id) => {
         if (!window.confirm("Are you sure you want to delete this expense?")) return;
         try {
-            await axios.delete(`http://localhost:8000/expenses/${id}`, {
+            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/expenses/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setExpenses((prev) => prev.filter((expense) => expense.id !== id));
@@ -143,7 +139,7 @@ const Dashboard = () => {
         try {
             const cf = await load({ mode: "sandbox" });
     
-            const response = await fetch("http://localhost:8000/payment/create", {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/payment/create`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -153,8 +149,7 @@ const Dashboard = () => {
             });
     
             const data = await response.json();
-            console.log("Create response data:", data);
-    
+
             if (data.paymentSessionId) {
                 cf.checkout({
                     paymentSessionId: data.paymentSessionId,
@@ -179,7 +174,7 @@ const Dashboard = () => {
         const delay = Math.min(3000 * attempt, 15000); // Increase frequency but cap at 15 sec
     
         try {
-            const response = await fetch("http://localhost:8000/payment/verify", {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/payment/verify`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -189,7 +184,6 @@ const Dashboard = () => {
             });
     
             const data = await response.json();
-            console.log("Verify Data:", data);
     
             if (data.latestStatus === "PAID") {
                 setIsPremium(true);
@@ -197,7 +191,6 @@ const Dashboard = () => {
                 alert("Payment Successful! You are now a premium user.");
                 return;
             }
-    
             if (data.latestStatus === "FAILED") {
                 alert("Payment Failed. Please try again.");
                 return;

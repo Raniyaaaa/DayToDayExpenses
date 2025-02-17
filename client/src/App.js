@@ -10,21 +10,18 @@ import ForgotPassword from "./components/Auth/ForgetPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 import Report from "./pages/Report";
 
-// Helper functions to check login and premium status
 const isAuthenticated = () => {
-  return !!localStorage.getItem("token"); // Check if a token exists
+  return !!localStorage.getItem("token");
 };
 
 const isPremiumUser = () => {
-  return localStorage.getItem("isPremium") === "true"; // Check premium status
+  return localStorage.getItem("isPremium") === "true";
 };
 
-// Protected route for authentication
 const ProtectedRoute = ({ element }) => {
   return isAuthenticated() ? element : <Navigate to="/" />;
 };
 
-// Protected route for premium users
 const PremiumRoute = ({ element }) => {
   return isAuthenticated() && isPremiumUser() ? element : <Navigate to="/dashboard" />;
 };
@@ -41,8 +38,8 @@ function App() {
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
         <Route path="/leaderboard" element={<PremiumRoute element={<Leaderboard />} />} />
-        <Route path='/report' element={<Report/>}/>
-        {/* 404 Not Found Route (MUST be the last route) */}
+        <Route path='/report' element={<PremiumRoute element={<Report />} />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

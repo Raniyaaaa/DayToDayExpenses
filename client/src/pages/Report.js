@@ -9,7 +9,7 @@ function Report() {
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const response = await fetch(`http://localhost:8000/premium/download-report`, {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/premium/download-report`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const res = await response.json();

@@ -16,6 +16,7 @@
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
     border-radius: 12px;
     border: 1px solid #e0e0e0; /* Light border */
+    overflow-x: auto; /* Enables horizontal scrolling on small screens */
 }
 
 /* Report Title */
@@ -32,6 +33,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
+    min-width: 600px; /* Ensures proper alignment on mobile scroll */
 }
 
 .report-table th, 
@@ -87,6 +89,7 @@
     font-size: 16px;
     border-radius: 6px;
     cursor: pointer;
+    margin-left: 30px;
     font-weight: 500;
     transition: background 0.3s ease-in-out;
     margin-top: 15px;
@@ -107,14 +110,33 @@
         font-size: 22px;
     }
 
+    .report-table-container {
+        width: 100%;
+        overflow-x: auto; /* Enables table scrolling on small screens */
+    }
+
+    .report-table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+    }
+
     .report-table th, 
     .report-table td {
         padding: 10px;
         font-size: 14px;
+        white-space: nowrap; /* Prevents content from wrapping */
+    }
+
+    .report-total {
+        font-size: 18px;
+        text-align: center; /* Center align total expense on small screens */
     }
 
     .print-button {
         padding: 10px 14px;
         font-size: 14px;
+        width: 100%;
+        margin-left: 0;
     }
 }

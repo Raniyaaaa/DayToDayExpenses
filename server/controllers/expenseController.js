@@ -23,7 +23,6 @@ exports.addExpense = async (req, res) => {
         res.status(201).json({ message: "Expense added successfully!", expense });
     } catch (error) {
         if (transaction) await transaction.rollback();
-        console.error("Error adding expense:", error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -57,7 +56,6 @@ exports.editExpense = async (req, res) => {
         res.status(200).json({ message: "Expense updated successfully!", expense });
     } catch (error) {
         if (transaction) await transaction.rollback();
-        console.error("Error editing expense:", error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -90,7 +88,6 @@ exports.getExpenses = async (req, res) => {
           });
 
     } catch (error) {
-        console.error("Error fetching expenses:", error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -122,7 +119,6 @@ exports.deleteExpense = async (req, res) => {
         res.status(200).json({ message: "Expense deleted successfully!" });
     } catch (error) {
         if (transaction) await transaction.rollback();
-        console.error("Error deleting expense:", error);
         res.status(500).json({ error: error.message });
     }
 };

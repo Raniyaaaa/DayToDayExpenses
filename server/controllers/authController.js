@@ -52,7 +52,6 @@ exports.login = async (req, res) => {
     res.status(200).json({ message: "Login successful", token, user });
   } catch (error) {
     if (transaction) await transaction.rollback();
-    console.error("Login error:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -60,7 +59,7 @@ exports.login = async (req, res) => {
 exports.getUser = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
-    const userId = req.user.userId; // Assuming `req.user` contains authenticated user info
+    const userId = req.user.userId; 
 
     const user = await User.findOne({
       where: { id: userId },
@@ -77,7 +76,6 @@ exports.getUser = async (req, res) => {
     res.json({ user });
   } catch (error) {
     if (transaction) await transaction.rollback();
-    console.error("Error fetching user details:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -99,10 +97,7 @@ exports.forgetPassword = async(req, res) => {
        isActive: true,
      });
 
-    const resetUrl = `http://localhost:3000/reset-password?requestId=${requestId}&email=${email}`;
-
-    console.log("API_KEY:", process.env.API_KEY);
-    
+    const resetUrl = `${process.env.URL}/reset-password?requestId=${requestId}&email=${email}`;
     const Client = Sib.ApiClient.instance;
     const apiKey = Client.authentications['api-key']
     apiKey.apiKey = process.env.API_KEY;
