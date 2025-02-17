@@ -1,3 +1,4 @@
+/* General Wrapper */
 .report-wrapper {
     text-align: center;
     margin: 20px auto;
@@ -16,7 +17,6 @@
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
     border-radius: 12px;
     border: 1px solid #e0e0e0; /* Light border */
-    overflow-x: auto; /* Enables horizontal scrolling on small screens */
 }
 
 /* Report Title */
@@ -28,15 +28,14 @@
     text-align: center;
 }
 
-/* Report Table */
+/* Table Styling */
 .report-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
-    min-width: 600px; /* Ensures proper alignment on mobile scroll */
 }
 
-.report-table th, 
+.report-table th,
 .report-table td {
     border: 1px solid #ddd;
     padding: 12px;
@@ -52,17 +51,18 @@
     text-transform: uppercase;
 }
 
-/* Alternate Row Coloring */
+/* Even Row Coloring */
 .report-table tbody tr:nth-child(even) {
     background-color: #f1f8f4;
 }
 
+/* Row Hover Effect */
 .report-table tbody tr:hover {
     background-color: #e1f0e5;
     transition: background 0.3s ease-in-out;
 }
 
-/* No Data */
+/* No Data Message */
 .no-data {
     text-align: center;
     font-style: italic;
@@ -71,7 +71,32 @@
     padding: 12px;
 }
 
-/* Total Expense */
+/* Report History */
+.report-history {
+    margin-top: 4rem;
+}
+
+.report-history ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.report-history li {
+    padding: 8px 0;
+}
+
+.report-history a {
+    color: #34a853;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.report-history a:hover {
+    text-decoration: underline;
+}
+
+/* Total Expense Styling */
 .report-total {
     font-size: 20px;
     font-weight: bold;
@@ -80,7 +105,7 @@
     margin-top: 15px;
 }
 
-/* Print Button */
+/* Download Button */
 .print-button {
     background-color: #34a853;
     color: white;
@@ -89,7 +114,6 @@
     font-size: 16px;
     border-radius: 6px;
     cursor: pointer;
-    margin-left: 30px;
     font-weight: 500;
     transition: background 0.3s ease-in-out;
     margin-top: 15px;
@@ -99,44 +123,88 @@
     background-color: #2a8a41;
 }
 
-/* Responsive Design */
+/* Mobile Responsive */
 @media (max-width: 768px) {
+    /* Adjust Report Box */
     .report-box {
         width: 95%;
         padding: 20px;
     }
 
+    /* Smaller Title Font */
     .report-title {
         font-size: 22px;
     }
 
-    .report-table-container {
-        width: 100%;
-        overflow-x: auto; /* Enables table scrolling on small screens */
+    /* Table Cells Padding and Font Size */
+    .report-table th,
+    .report-table td {
+        padding: 10px;
+        font-size: 14px;
     }
 
+    /* Total Expense Text */
+    .report-total {
+        font-size: 18px;
+    }
+
+    /* Button Adjustments */
+    .print-button {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    /* Report History Adjustments */
+    .report-history a {
+        font-size: 14px;
+    }
+
+    /* Adjust Table to be Scrollable on Small Screens */
     .report-table {
         width: 100%;
         display: block;
         overflow-x: auto;
     }
 
-    .report-table th, 
-    .report-table td {
-        padding: 10px;
+    /* Adjust Table Header Font Size */
+    .report-table th {
+        font-size: 16px;
+    }
+
+    /* No Data Text */
+    .no-data {
         font-size: 14px;
-        white-space: nowrap; /* Prevents content from wrapping */
+    }
+}
+
+/* Further Responsiveness for Very Small Screens (Mobile Phones) */
+@media (max-width: 480px) {
+    .report-wrapper {
+        padding: 15px;
+    }
+
+    /* Adjust Report Box */
+    .report-box {
+        width: 100%;
+        padding: 15px;
+    }
+
+    .report-title {
+        font-size: 20px;
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 8px;
+        font-size: 12px;
     }
 
     .report-total {
-        font-size: 18px;
-        text-align: center; /* Center align total expense on small screens */
+        font-size: 16px;
     }
 
     .print-button {
-        padding: 10px 14px;
-        font-size: 14px;
-        width: 100%;
-        margin-left: 0;
+        padding: 8px 12px;
+        font-size: 12px;
     }
 }
