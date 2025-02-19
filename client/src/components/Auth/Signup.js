@@ -12,7 +12,7 @@ function Signup() {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://localhost:8000/user/signup`,
+        `${process.env.REACT_APP_API_BASE_URL}/user/signup`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

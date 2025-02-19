@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+import { BiLogIn } from "react-icons/bi";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -11,7 +12,7 @@ function Login() {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://localhost:8000/user/login`,
+        `${process.env.REACT_APP_API_BASE_URL}/user/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -21,7 +22,7 @@ function Login() {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem("token", data.token);
-        alert("Login successful!!");
+        alert("Login successful!!!");
         navigate("/dashboard");
       } else {
         alert(data.error || "Login failed");
@@ -33,7 +34,7 @@ function Login() {
 
   return (
     <div className="form-container">
-      <h1 className="form-title">Login</h1>
+      <h1 className="form-title">Login<BiLogIn/></h1>
       <form onSubmit={handleSubmit} className="auth-form">
         <input
           type="email"
